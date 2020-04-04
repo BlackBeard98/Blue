@@ -1,9 +1,9 @@
-:-dynamic bolsa/2, fabrica/1.
-bolsa(azul,20).
-bolsa(blanco,20).
-bolsa(negro,20).
-bolsa(rojo,20).
-bolsa(amarillo,20).
+:-dynamic bolsa/2, fabrica/1, pared/4.
+bolsa(0,20).
+bolsa(1,20).
+bolsa(2,20).
+bolsa(3,20).
+bolsa(4,20).
 
 
 extender([],[]).
@@ -44,7 +44,8 @@ hacer_fabricas([A1|L],[[A1]|R]):-
 
 poner_fabrica([]).
 poner_fabrica([X|L]):-
-    asserta(fabrica(X)),
+    length(L, Int),
+    asserta(fabrica([X,Int])),
     poner_fabrica(L).
 
 quitar_bolsa([]).
@@ -55,14 +56,22 @@ quitar_bolsa([X|L]):-
     asserta(bolsa(X,P1)),
     quitar_bolsa(L).
     
-        
+valida(X,Y):-
+    X>= 0,5>X,Y>0,5>Y.
 
+linea(X,Y,MX,MY,_,0):-
+    X1 is X+MX,
+    Y1 is Y+MY,
+    not(valida(X1,Y1)),!.
 
+linea(X,Y,MX,MY,Player,Ans):-
+    X1 is X+MX,
+    Y1 is Y+MY,
+    clause(pared(X1,Y1,Player,_),true),!,
+    linea(X1,Y1,MX,MY,Player,Temp),
+    Ans is Temp +1.
 
-
-
-
-
-
-
-
+linea(X,Y,MX,MY,Player,0):-
+    X1 is X+MX,
+    Y1 is Y+MY,
+    not(clause(pared(X1,Y1,Player,_),true)).
