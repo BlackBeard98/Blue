@@ -1,4 +1,4 @@
-:-dynamic bolsa/2, fabrica/2, pared/4, jugador_actual/1,patrones/2,rodapie/2,centro/1,penalizacion/1.
+:-dynamic bolsa/2, fabrica/2, pared/4, jugador_actual/1,patrones/2,rodapie/2,centro/1,penalizacion/1,jugador_rodapie/2.
 
 rodapie(0,0).
 rodapie(1,-1).
@@ -16,14 +16,16 @@ init_game(true):-
     asserta(bolsa(0,20)),asserta(bolsa(1,20)),asserta(bolsa(2,20)),asserta(bolsa(3,20)),asserta(bolsa(4,20)),
     asserta(jugador_actual(0)),
     init_rodapie,
-    asserta(patrones(4,[[1,0,0],[2,0,0],[3,0,0],[4,0,0],[5,0,0]])),
-    asserta(patrones(1,[[1,0,0],[2,0,0],[3,0,0],[4,0,0],[5,0,0]])),
-    asserta(patrones(2,[[1,0,0],[2,0,0],[3,0,0],[4,0,0],[5,0,0]])),
-    asserta(patrones(3,[[1,0,0],[2,0,0],[3,0,0],[4,0,0],[5,0,0]])).
+    asserta(penalizacion(1)),
+    asserta(patrones(0,[5,0,0])),asserta(patrones(0,[4,0,0])),asserta(patrones(0,[3,0,0])),asserta(patrones(0,[2,0,0])),asserta(patrones(0,[1,0,0])),
+    asserta(patrones(1,[5,0,0])),asserta(patrones(1,[4,0,0])),asserta(patrones(1,[3,0,0])),asserta(patrones(1,[2,0,0])),asserta(patrones(1,[1,0,0])),
+    asserta(patrones(2,[5,0,0])),asserta(patrones(2,[4,0,0])),asserta(patrones(2,[3,0,0])),asserta(patrones(2,[2,0,0])),asserta(patrones(2,[1,0,0])),
+    asserta(patrones(3,[5,0,0])),asserta(patrones(3,[4,0,0])),asserta(patrones(3,[3,0,0])),asserta(patrones(3,[2,0,0])),asserta(patrones(3,[1,0,0])).
+
    
 
 init_rodapie:-
-    asserta(jugador_rodapie(1,0)),asserta(jugador_rodapie(2,0)),asserta(jugador_rodapie(3,0)),asserta(jugador_rodapie(4,0)).
+    asserta(jugador_rodapie(1,0)),asserta(jugador_rodapie(2,0)),asserta(jugador_rodapie(3,0)),asserta(jugador_rodapie(0,0)).
 
 extender([],[]).
 
@@ -113,11 +115,61 @@ combo(Player,X,Y,R):-
     linea(X,Y,0,-1,Player,S4),!,
     R is S1+S2+S3+S4+2.
 jugada(X):-
-    clause(jugador_actual(X),true).
+    clause(jugador_actual(JA),true),
+    write(JA),write("\n"),
+    dibuja_estado,
+    selecciona_jugada(JA,X), ejecuta_jugada(JA,X),
+    dibuja_estado,
+    retract(jugador_actual(JA)),
+    NJA is (JA+1) mod 4,
+    asserta(jugador_actual(NJA)).
+    
 selecciona_jugada(Jugador,R):-
-    clause(patrones(Jugador,X),true),
-    filas(X,Jugador,[[-1,-1,-30,-1],0],R).
+    findall(Temp,patrones(Jugador,Temp),FPatrones),
+    findall([T,T,K],patrones(Jugador,[T,T,K]),NPatrones),
+    subtract(FPatrones,NPatrones,Patrones),
+    sort(Patrones,SPatrones),
+    filas(SPatrones,Jugador,[[-1,-1,-30,-1],0],R).
 
+ejecuta_jugada(Jugador,[[PX,PY,Res,10],P]):-
+    Color is (PX-PY) mod 5,
+    findall(1,centro(Color),TL),
+    length(TL,Ac),
+    retractall(centro(Color)),
+    clause(patrones(Jugador,[PX,Tomados,_]),true),
+    NewTomados is min(PX,Tomados+Ac),
+    retract(patrones(Jugador,[PX,Tomados,_])),
+    asserta(patrones(Jugador,[PX,NewTomados,Color])),
+    pon_pared(Jugador,PX,PY,NewTomados,PX),
+    clause(jugador_rodapie(Jugador,Rod),true),
+    NewRod is Rod+max(0,Ac-(PX-Tomados)),
+    retract(jugador_rodapie(Jugador,Rod)),
+    asserta(jugador_rodapie(Jugador,NewRod)),
+    maneja_penalizacion(P).
+    
+ejecuta_jugada(Jugador,[[PX,PY,Res,Fno],P]):-
+    Color is (PX-PY) mod 5,
+    clause(fabrica(Fab,Fno),true),
+    retract(fabrica(Fab,Fno)),
+    pon_centro(Fab,Color),
+    clause(patrones(Jugador,[PX,Tomados,_]),true),
+    cantidad(Color,Fab,Ac),
+    NewTomados is min(PX,Tomados+Ac),
+    retract(patrones(Jugador,[PX,Tomados,_])),
+    asserta(patrones(Jugador,[PX,NewTomados,Color])),
+    pon_pared(Jugador,PX,PY,NewTomados,PX),
+    clause(jugador_rodapie(Jugador,Rod),true),
+    NewRod is Rod+max(0,Ac-(PX-Tomados)),
+    retract(jugador_rodapie(Jugador,Rod)),
+    asserta(jugador_rodapie(Jugador,NewRod)),
+    maneja_penalizacion(P).
+
+maneja_penalizacion(1):-
+    retract(penalizacion(_)),asserta(penalizacion(0)).
+maneja_penalizacion(0).
+pon_pared(Jugador,X,Y,C,C):-!,
+    asserta(pared(X,Y,Jugador,pendiente)).
+pon_pared(_,_,_,_,_).
 pon_centro([],_).
 pon_centro([X|L],X):-!,
     pon_centro(L,X).
@@ -210,7 +262,11 @@ cantidad(Color,[Color|L],Res):-!,
 cantidad(Color,[_|L],R):-
     cantidad(Color,L,R).
 
-por_encima([X,_],Necesita,Color,_,_,[-30,-1]):-
+
+por_encima([X,_],_,Color,_,_,[-30,-1]):-
+    cantidad(Color,X,0),!.
+
+por_encima([X,No],Necesita,Color,_,_,[0,No]):-
     cantidad(Color,X,Ac),
     Ac<Necesita,!.
 
@@ -234,12 +290,37 @@ busca_factorias([X|L],Necesita,Color,Suma,Jugador,[Res,No],[FRes,FNo]):-
     Temp_Res<Res,
     busca_factorias(L,Necesita,Color,Suma,Jugador,[Res,No],[FRes,FNo]).
 
-dibuja_fabricas([]).
-dibuja_fabricas([[X,F]|L]):-
-    write(X),write(' '),write(F),write("\n"),
-    dibuja_fabricas(L).
+dibuja([]).
+
+dibuja([X|L]):-
+    write(X),write("\n"),
+    dibuja(L).
     
-dib_fabricas:-
-    findall([X,Y],fabrica(Y,X),L), dibuja_fabricas(L).
+dibuja_fabricas:-
+    write("Fabricas\n"),
+    findall([X,Y],fabrica(Y,X),L), dibuja(L).
     
-        
+dibuja_pared:-
+    write("Pared\n"),
+    clause(jugador_actual(Ja),true),
+findall([X,Y,Ja,ES],pared(X,Y,Ja,ES),L),dibuja(L).
+
+dibuja_patrones:-
+    write("Patron\n"),
+    clause(jugador_actual(Ja),true),
+    findall(Temp,patrones(Ja,Temp),Patrones),
+    sort(Patrones, SPatrones),dibuja(SPatrones).
+dibuja_centro:-
+    write("Centro\n"),
+    findall(X,centro(X),L),dibuja(L).
+dibuja_rodapie:-
+    write("Rodapie\n"),
+    clause(jugador_actual(Ja),true),
+    clause(jugador_rodapie(Ja,X),true),
+    write(X),write("\n").
+dibuja_estado:-
+    dibuja_rodapie,
+    dibuja_pared,
+    dibuja_patrones,
+    dibuja_centro,
+    dibuja_fabricas.
