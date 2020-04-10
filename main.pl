@@ -1,4 +1,4 @@
-:-dynamic bolsa/2, fabrica/2, pared/4, jugador_actual/1,proximo_jugador/1,patrones/2,rodapie/2,centro/1,penalizacion/1,jugador_rodapie/2,jugador_suma/2,tapa/1,juego_terminado/1.
+:-dynamic bolsa/2, fabrica/2, pared/4, jugador_actual/1,proximo_jugador/1,patrones/2,centro/1,penalizacion/1,jugador_rodapie/2,jugador_suma/2,tapa/1,juego_terminado/1, jugador_filas/2.
 
 rodapie(0,0).
 rodapie(1,-1).
@@ -13,9 +13,9 @@ rodapie(X,-14):-
 myconcat([],X,X).
 myconcat([X|Y],Z,[X|R]):-
     myconcat(Y,Z,R).
-init_game(true):-
-    %retractall(bolsa(_,_)),retractall(fabrica(_,_)),retractall(pared(_,_,_,_)),retractall(jugador_actual(_)),retractall(proximo_jugador(_)),retractall(patrones(_,_)),retractall(rodapie(_,_)),
-    %retractall(centro(_)),retractall(penalizacion(_)),retractall(jugador_rodapie(_,_)),retractall(jugador_suma(_,_)),retractall(tapa(_)),retractall(juego_terminado(_)),
+init_game:-
+    retractall(bolsa(_,_)),retractall(fabrica(_,_)),retractall(pared(_,_,_,_)),retractall(jugador_actual(_)),retractall(proximo_jugador(_)),retractall(patrones(_,_)),retractall(jugador_filas(_,_)),
+    retractall(centro(_)),retractall(penalizacion(_)),retractall(jugador_rodapie(_,_)),retractall(jugador_suma(_,_)),retractall(tapa(_)),retractall(juego_terminado(_)),
     asserta(bolsa(0,20)),asserta(bolsa(1,20)),asserta(bolsa(2,20)),asserta(bolsa(3,20)),asserta(bolsa(4,20)),
     asserta(jugador_actual(0)),
     asserta(juego_terminado(0)),
@@ -25,6 +25,10 @@ init_game(true):-
     asserta(jugador_suma(2,0)),
     asserta(jugador_suma(3,0)),
     asserta(jugador_suma(0,0)),
+    asserta(jugador_filas(1,0)),
+    asserta(jugador_filas(2,0)),
+    asserta(jugador_filas(3,0)),
+    asserta(jugador_filas(0,0)),
     asserta(patrones(0,[5,0,0])),asserta(patrones(0,[4,0,0])),asserta(patrones(0,[3,0,0])),asserta(patrones(0,[2,0,0])),asserta(patrones(0,[1,0,0])),
     asserta(patrones(1,[5,0,0])),asserta(patrones(1,[4,0,0])),asserta(patrones(1,[3,0,0])),asserta(patrones(1,[2,0,0])),asserta(patrones(1,[1,0,0])),
     asserta(patrones(2,[5,0,0])),asserta(patrones(2,[4,0,0])),asserta(patrones(2,[3,0,0])),asserta(patrones(2,[2,0,0])),asserta(patrones(2,[1,0,0])),
@@ -172,6 +176,8 @@ fabrica_color_min([[Fab,Fno]|L],[_,_,BCant],R):-
 fabrica_color_min([_|L],B,R):-
     fabrica_color_min(L,B,R).
 pon_en_rodapie([10,Color,Cant],Jugador):-!,
+    penalizacion(Pen),
+    maneja_penalizacion(Jugador,Pen),
     retractall(centro(Color)),
     jugador_rodapie(Jugador,Or),
     Nr is Or +Cant,
@@ -238,7 +244,8 @@ fin_de_juego:-
     premia_columnas(ColumnasCompletas),
     todos_colores([0,1,2,3]),
     write("--------------Puntuaciones--------------\n"),
-    findall(1,( jugador_suma(X,Y),write("Jugador: "),write(X),write(" obtuvo: "),write(Y),write(" Puntos\n") ),_).
+    findall(1,( jugador_suma(X,Y),write("Jugador: "),write(X),write(" obtuvo: "),write(Y),write(" Puntos") , jugador_filas(X,F),
+    write(" lleno "),write(F), write(" Filas\n")),_).
 
 todos_colores([]).
 
@@ -256,7 +263,9 @@ un_color(_,_,0).
 premia_filas([]).
 
 premia_filas([X|L]):-
-    jugador_suma(X,S),Sn is S +2,retract(jugador_suma(X,_)),asserta(jugador_suma(X,Sn)),premia_filas(L).
+    jugador_suma(X,S),Sn is S +2,retract(jugador_suma(X,_)),asserta(jugador_suma(X,Sn)),
+    jugador_filas(X,F),NF is F+1 ,retract(jugador_filas(X,_)),asserta(jugador_filas(X,NF)),
+    premia_filas(L).
 
 premia_columnas([]).
 
@@ -321,6 +330,7 @@ check_pared([[X,Y]|L],Jugador,S):-
 selecciona_jugada(Jugador,R):-
     findall(Temp,patrones(Jugador,Temp),FPatrones),
     findall([T,T,K],patrones(Jugador,[T,T,K]),NPatrones),
+    write("here"),
     subtract(FPatrones,NPatrones,Patrones),
     sort(Patrones,SPatrones),
     filas(SPatrones,Jugador,[[-1,-1,-30,-1],0],R).

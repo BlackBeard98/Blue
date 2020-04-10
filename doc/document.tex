@@ -50,7 +50,7 @@
 \tableofcontents
 \newpage
 \section{Estrategia}
-La estrategia escogida es sencilla pero efectiva, b\'asicamente a las jugadas se las orden\'o seg\'un el siguiente criterio: Analizamos por filas todos posibles azulejos que nos faltan por rellenar, en caso de que en la zona de preparaci\'on est\'e llena no es analizada, si tiene azulejos y no est\'a llena solo se analiza ese color, y en caso de estar vac\'ia se analizan todos los colores disponibles de la pared. Por cada una de estas posiciones vemos que efecto ocurrir\'ia si tomamos los azulejos del color seleccionado de una f\'abrica o del centro. Si la cantidad de azulejos es inferior a la cantidad que se necesita para poder poner en la pared su puntuaci\'on es 0, si es exactamente o mayor de lo que necesita su puntuaci\'on ser\'a la que generar\'ia de ponerse en ese instante. Es importante se\~nalar que para analizar esto se tienen en cuenta posiciones que aunque a\'un no han sido colocadas en la pared pero que lo ser\'an en la misma ronda, por lo que esta puntuaci\'on es solo un estimado del verdadero impacto que tendr\'ia la jugada ya que pudiera ser mayor, esto es ocasionado por que la puntuaci\'on de las fichas reci\'en a\~nadidas se hace de arriba abajo. Si dos jugadas tienen la misma puntuaci\'on se tomar\'a la que est\'e m\'as abajo ya que estas posiciones son m\'as dif\'iciles de rellenar. Finalmente hay veces que no se puede rellenar la pared con ninguna jugada y es necesario poner en el piso, en cuyo caso nuestra estrategia escoge del centro y la f\'abricas la que  tenga el color con la menor cantidad de iguales para minimizar las p\'erdidas que tengamos. Tambi\'en es importante notar que hay veces en que poner directamente del piso pudiera ser mejor que tomar de las f\'abricas pero estas situaciones no son tan usuales y adem\'as son especulativas, al juego tener un car\'acter aleatorio una buena jugada en un momento pudiera convertirse en una mala seg\'un la suerte.
+La estrategia escogida es sencilla pero efectiva, b\'asicamente a las jugadas se las orden\'o seg\'un el siguiente criterio:\\\\ Analizamos por filas todos posibles azulejos que nos faltan por rellenar, en caso de que en la zona de preparaci\'on est\'e llena no es analizada, si tiene azulejos y no est\'a llena solo se analiza ese color, y en caso de estar vac\'ia se analizan todos los colores disponibles de la pared.\\\\ Por cada una de estas posiciones vemos que efecto ocurrir\'ia si tomamos los azulejos del color seleccionado de una f\'abrica o del centro. Si la cantidad de azulejos es inferior a la cantidad que se necesita para poder poner en la pared su puntuaci\'on es 0, si es exactamente o mayor de lo que necesita su puntuaci\'on ser\'a la que generar\'ia de ponerse en ese instante. Es importante se\~nalar que para analizar esto se tienen en cuenta posiciones que aunque a\'un no han sido colocadas en la pared pero que lo ser\'an en la misma ronda, por lo que esta puntuaci\'on es solo un estimado del verdadero impacto que tendr\'ia la jugada ya que pudiera ser mayor, esto es ocasionado por que la puntuaci\'on de las fichas reci\'en a\~nadidas se hace de arriba abajo. Si dos jugadas tienen la misma puntuaci\'on se tomar\'a la que est\'e m\'as abajo ya que estas posiciones son m\'as dif\'iciles de rellenar.\\\\ Finalmente hay veces que no se puede rellenar la pared con ninguna jugada y es necesario poner en el piso, en cuyo caso nuestra estrategia escoge del centro y la f\'abricas la que  tenga el color con la menor cantidad de iguales para minimizar las p\'erdidas que tengamos.\\\\ Tambi\'en es importante notar que hay veces en que poner directamente del piso pudiera ser mejor que tomar de las f\'abricas pero estas situaciones no son tan usuales y adem\'as son especulativas, al juego tener un car\'acter aleatorio una buena jugada en un momento pudiera convertirse en una mala seg\'un la suerte.
 \newpage
 \section{Utilizaci\'on} 
 Todo empieza llamando al m\'etodo \textbf{init\_game.} luego para ver cada jugada se llama al m\'etodo \textbf{jugada.} y finalmente el m\'etodo \textbf{juego.}
@@ -65,14 +65,19 @@ $[Fila,Columna,N,Estado]$ (Estado: Puesto en la pared es \textit{real} \\
 $[Fila,Columna,N,Estado]$	si va a ser puesto es\textit{pendiente}) \\
 .\\
 .\\
+Patron\\
+$[Tam,Tom,Color]$ (Tam:Tama\~no, Tom:Tomados,de las lineas de patr\'on\\
+$[Tam,Tom,Color]$  de usuario actual)\\
+.\\
+.\\
 Centro\\
 Color (Color:Indica que en el centro del la mesa hay un azulejo de ese color)\\
 Color  \\
 .\\
 .\\
 Fabricas\\
-$[[C1,C2,C3,C4,],Fno]$ (Fno:N\'umero de f\'abrica\\
-$[[C1,C2,C3,C4,],Fno]$ Los $C_{i}$ indican el color)\\
+$[Fno,[C1,C2,C3,C4,]]$ (Fno:N\'umero de f\'abrica\\
+$[Fno,[C1,C2,C3,C4,]]$ Los $C_{i}$ indican el color)\\
 .\\
 .\\
 ---Jugada Realizada---\\
@@ -84,7 +89,7 @@ Una breve descripci\'on de la jugada.\\
 Al final de cada ronda se pone Ronda Terminada\\
 Al final del juego Fin de juego y:\\
 --------------Puntuaciones--------------\\
-Jugador: {N\'umero} obtuvo: {Cantidad} puntos\\
+Jugador: \{N\'umero\} obtuvo: \{Cantidad\} puntos lleno \{Filas\} Filas\\
 .\\ 
 .\\
 \subsection{Detalles}
